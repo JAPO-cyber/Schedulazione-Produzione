@@ -41,3 +41,4 @@ if st.button("🚀 Avvia tutti gli scenari"):
 elif "risultati_scenari" in st.session_state:
     st.info("ℹ️ Risultati scenari già disponibili. Vai alla Pagina 4.")
 
+
