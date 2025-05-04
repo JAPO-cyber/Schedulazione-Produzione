@@ -3,7 +3,7 @@ import pandas as pd
 from lib.style import apply_custom_style
 
 # Importa la funzione di simulazione dal modulo simulator
-from simulator import esegui_simulazione
+from lib.simulator import esegui_simulazione
 
 st.set_page_config(page_title="3. Esecuzione Simulazione", layout="wide")
 apply_custom_style()
