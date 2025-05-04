@@ -10,7 +10,6 @@ if "role" not in st.session_state:
 
 # Determinazione del titolo della pagina (alias)
 page_title = "Login" if not st.session_state.logged_in else "Schedulatore di produzione"
-
 st.set_page_config(page_title=page_title, layout="wide")
 
 # ✅ Applica stile grafico centralizzato
@@ -27,7 +26,8 @@ if not st.session_state.logged_in:
         if success:
             st.session_state.logged_in = True
             st.session_state.role = role
-            st.experimental_rerun()
+            # Naviga direttamente alla pagina di caricamento dati
+            st.switch_page("1_Caricamento_Dati")
 
 # 🔓 Logout + Ruolo nella sidebar
 if st.session_state.logged_in:
@@ -36,4 +36,6 @@ if st.session_state.logged_in:
         if st.button("🔓 Logout"):
             st.session_state.logged_in = False
             st.session_state.role = None
-            st.experimental_rerun()
+            # Ricarica la pagina per ripristinare lo stato di login
+            st.rerun()
+
