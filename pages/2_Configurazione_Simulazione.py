@@ -1,6 +1,9 @@
+# pages/2_Configurazione_Simulazione.py
+
 import streamlit as st
-from lib.style import apply_custom_style
 import pandas as pd
+from datetime import datetime, date, time
+from lib.style import apply_custom_style
 
 st.set_page_config(page_title="2. Configurazione Simulazione", layout="wide")
 apply_custom_style()
@@ -17,7 +20,6 @@ if "df_lotti" not in st.session_state or "df_fasi" not in st.session_state:
 
 st.title("2. Configurazione Risorse e Scenari di Simulazione")
 
-# Dati di input
 df_lotti = st.session_state["df_lotti"]
 df_fasi   = st.session_state["df_fasi"]
 
@@ -123,11 +125,21 @@ override = st.checkbox(
     value=False, key="config_override_start"
 )
 if override:
-    data_inizio = st.datetime_input(
-        "Data e ora di inizio",
-        value=df_lotti['Giorno'].min().to_pydatetime().replace(hour=6, minute=0),
-        key="config_data_inizio"
+    # date_input restituisce un date object
+    default_date = df_lotti['Giorno'].min()
+    if not isinstance(default_date, date):
+        default_date = pd.to_datetime(default_date).date()
+    sel_date = st.date_input(
+        "Data di inizio",
+        value=default_date,
+        key="config_data_inizio_date"
     )
+    sel_time = st.time_input(
+        "Ora di inizio",
+        value=time(hour=6, minute=0),
+        key="config_data_inizio_time"
+    )
+    data_inizio = datetime.combine(sel_date, sel_time)
 else:
     data_inizio = None
 
@@ -155,8 +167,8 @@ config = {
 if "scenari" not in st.session_state:
     st.session_state["scenari"] = []
 
-# Bottone per aggiungere scenario
-if st.button("💾 Aggiungi Scenario"): 
+# Bottone per aggiungere uno scenario
+if st.button("💾 Aggiungi Scenario"):
     st.session_state["scenari"].append(config.copy())
     st.success(f"✅ Scenario #{len(st.session_state['scenari'])} aggiunto")
 
