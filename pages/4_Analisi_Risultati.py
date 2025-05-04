@@ -1,83 +1,57 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
 from lib.style import apply_custom_style
+from lib.simulator import esegui_simulazione
 
-st.set_page_config(page_title="4. Analisi Risultati", layout="wide")
+st.set_page_config(page_title="3. Esecuzione Simulazione", layout="wide")
 apply_custom_style()
 
-# Verifica login
+# ✅ Verifica accesso
 if not st.session_state.get("logged_in", False):
     st.error("❌ Devi effettuare il login per accedere a questa pagina.")
     st.stop()
 
-# Verifica esistenza risultati
-if "risultati_lotti" not in st.session_state or "risultati_risorse" not in st.session_state:
-    st.warning("❌ Esegui prima la simulazione nella pagina 3.")
+# ✅ Verifica che i dati siano stati caricati e confermati
+required_keys = [
+    "df_lotti", "df_fasi", "df_posticipi",
+    "df_posticipi_fisiologici", "df_equivalenze",
+    "config_simulazione"
+]
+missing = [k for k in required_keys if k not in st.session_state]
+if missing:
+    st.warning(
+        f"⚠️ Dati mancanti: {', '.join(missing)}. Torna alle pagine precedenti per completare il caricamento."
+    )
     st.stop()
 
-st.title("4. Analisi dei Risultati")
+st.title("3. Esecuzione della Simulazione")
 
-# Load DataFrames
-df_risultati = st.session_state["risultati_lotti"]
-df_risorse = st.session_state["risultati_risorse"]
+# riepilogo dati/config come prima…
+# ...
 
-# Tabs per analisi principali
-tabs = st.tabs(["Gantt Lotti", "Dashboard Risorse"])
+if st.button("🚀 Avvia Simulazione"):
+    progress_bar = st.progress(0.0, text="⏳ Avvio simulazione…")
+    with st.spinner("⏳ Simulazione in corso…"):
+        # recupero input
+        df_lotti   = st.session_state["df_lotti"]
+        df_fasi    = st.session_state["df_fasi"]
+        df_post    = st.session_state["df_posticipi"]
+        df_pf      = st.session_state["df_posticipi_fisiologici"]
+        df_eq      = st.session_state["df_equivalenze"]
+        config     = st.session_state["config_simulazione"]
 
-with tabs[0]:
-    st.subheader("Diagramma di Gantt dei Lotti")
-    gantt = px.timeline(
-        df_risultati,
-        x_start="Start",
-        x_end="End",
-        y="ID_Lotto",
-        color="Fase",
-        title="Schedulazione Lotti"
-    )
-    gantt.update_yaxes(autorange="reversed")
-    st.plotly_chart(gantt, use_container_width=True)
-    st.markdown("---")
-    st.download_button(
-        "⬇️ Scarica Gantt come CSV",
-        df_risultati.to_csv(index=False).encode("utf-8"),
-        "gantt_lotti.csv",
-        "text/csv"
-    )
+        # callback che aggiorna la progress bar
+        def _update_progress(pct: float):
+            # pct fra 0.0 e 1.0
+            progress_bar.progress(pct)
 
-with tabs[1]:
-    st.subheader("Utilizzo Risorse nel Tempo")
-    # Line chart per occupazione
-    line_fig = px.line(
-        df_risorse,
-        x="Time",
-        y=["Persone_occupate", "Carrelli_occupati"],
-        title="Occupazione Risorse"
-    )
-    st.plotly_chart(line_fig, use_container_width=True)
+        # avvio simulazione con callback
+        risultato = esegui_simulazione(
+            df_lotti, df_fasi, df_post, df_pf, df_eq,
+            config,
+            progress_callback=_update_progress
+        )
+        st.session_state["risultato_simulazione_raw"] = risultato
 
-    st.subheader("Andamento Persone")
-    area_pers = px.area(
-        df_risorse,
-        x="Time",
-        y="Persone_occupate",
-        title="Operai Occupati nel Tempo"
-    )
-    st.plotly_chart(area_pers, use_container_width=True)
+    st.success("✅ Simulazione completata!")
+    st.info("I DataFrame dei risultati saranno creati nella pagina successiva.")
 
-    st.subheader("Andamento Carrelli")
-    area_car = px.area(
-        df_risorse,
-        x="Time",
-        y="Carrelli_occupati",
-        title="Carrelli Occupati nel Tempo"
-    )
-    st.plotly_chart(area_car, use_container_width=True)
-
-    st.markdown("---")
-    st.download_button(
-        "⬇️ Scarica Uso Risorse come CSV",
-        df_risorse.to_csv(index=False).encode("utf-8"),
-        "uso_risorse.csv",
-        "text/csv"
-    )
