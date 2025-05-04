@@ -33,8 +33,12 @@ all_loaded = all(st.session_state.get(f"df_{key}") is not None for key in data_k
 st.markdown("---")
 if all_loaded:
     if st.button("✅ Conferma dati caricati"):
-        st.success("Dati confermati correttamente!")
         st.session_state["dati_confermati"] = True
+        st.success("Dati confermati correttamente! Reindirizzo alla pagina successiva...")
+        # Navigazione automatica alla pagina 2
+        st.experimental_set_query_params(page="2_Configurazione_Simulazione")
+        st.experimental_rerun()
 else:
     st.info("Carica e modifica tutti i file prima di confermare.")
+
 
