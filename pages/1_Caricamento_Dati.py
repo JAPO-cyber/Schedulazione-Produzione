@@ -14,11 +14,11 @@ st.title("1. Caricamento Dati")
 
 # Tabs per caricamento
 tabs = st.tabs([
-    "Fasi per Prodotto", 
-    "Lotti Giornalieri", 
-    "Posticipi Autorizzati", 
-    "Posticipi Fisiologici", 
-    "Equivalenze", 
+    "Fasi per Prodotto",
+    "Lotti Giornalieri",
+    "Posticipi Autorizzati",
+    "Posticipi Fisiologici",
+    "Equivalenze",
     "Caricamento Completo"
 ])
 
@@ -42,12 +42,15 @@ schema = {
         ("Quantità", "Quantità da produrre")
     ],
     "posticipi": [
+        ("Lotto", "ID lotto"),
         ("Fase", "Nome fase"),
         ("Ritardo_Minuti", "Ritardo autorizzato in minuti")
     ],
     "posticipi_fisiologici": [
-        ("Fase", "Nome fase"),
-        ("Ritardo_Fisiologico_Min", "Ritardo fisiologico stimato in minuti")
+        ("FORMATO", "Formato del prodotto"),
+        ("FASE", "Nome fase"),
+        ("QUANDO", "‘INIZIO_FASE’ o ‘FINE_FASE’"),
+        ("TEMPO", "Ritardo fisiologico stimato in minuti")
     ],
     "equivalenze": [
         ("Formato", "Formato del prodotto"),
@@ -58,38 +61,52 @@ schema = {
 
 data_keys = ["fasi", "lotti", "posticipi", "posticipi_fisiologici", "equivalenze"]
 
-# Tab individuali
+# 1. Tab individuali
 for tab, key in zip(tabs[:-1], data_keys):
     with tab:
-        st.subheader(f"Carica file {key.replace('_', ' ').title()}")
+        st.subheader(f"Carica file “{key.replace('_', ' ').title()}”")
         st.markdown("**Struttura attesa:**")
         for col, desc in schema[key]:
             st.markdown(f"- **{col}**: {desc}")
-        file = st.file_uploader(f"Carica {key}", type=["xlsx"], key=f"file_{key}")
-        if file:
-            df = pd.read_excel(file)
-            st.session_state[f"df_{key}"] = st.data_editor(df, use_container_width=True, key=f"editor_{key}")
+        uploaded = st.file_uploader(
+            f"Carica {key}", type=["xlsx"], key=f"file_{key}"
+        )
+        if uploaded:
+            df = pd.read_excel(uploaded)
+            edited = st.data_editor(df, use_container_width=True, key=f"editor_{key}")
+            st.session_state[f"df_{key}"] = edited
 
-# Tab caricamento completo
+# 2. Tab Caricamento Completo
 with tabs[-1]:
     st.subheader("Caricamento Completo di tutti i file")
-    st.markdown("Carica tutti i file Excel insieme. I nomi devono contenere: "
-                "`fasi`, `lotti`, `posticipi`, `fisiologici`, `equivalenze`.")
-    files = st.file_uploader("Carica file multipli", type=["xlsx"], accept_multiple_files=True, key="file_all")
+    st.markdown(
+        "Carica tutti i file Excel insieme. I nomi devono contenere: "
+        "`fasi`, `lotti`, `posticipi_fisiologici`, `posticipi`, `equivalenze`."
+    )
+    files = st.file_uploader(
+        "Carica file multipli",
+        type=["xlsx"],
+        accept_multiple_files=True,
+        key="file_all"
+    )
     if files:
+        # ordiniamo le chiavi per lunghezza decrescente in modo 
+        # che 'posticipi_fisiologici' venga riconosciuto prima di 'posticipi'
+        ordered_keys = sorted(data_keys, key=lambda k: -len(k))
         for f in files:
             name = f.name.lower()
-            for key in data_keys:
+            for key in ordered_keys:
                 if key in name:
                     df = pd.read_excel(f)
                     st.session_state[f"df_{key}"] = df
-                    st.write(f"📄 {key.replace('_', ' ').title()}:")
+                    st.write(f"📄 **{key.replace('_', ' ').title()}**")
                     st.write(df.head())
+                    break
         if st.button("✅ Conferma caricamento completo"):
             st.session_state["dati_confermati"] = True
             st.success("✅ Dati confermati correttamente!")
 
-# Conferma manuale
+# 3. Pulsante di conferma manuale (fallback)
 if all(st.session_state.get(f"df_{k}") is not None for k in data_keys):
     if st.button("✅ Conferma dati caricati"):
         st.session_state["dati_confermati"] = True
