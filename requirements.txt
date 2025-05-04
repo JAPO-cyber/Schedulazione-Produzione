@@ -1,1 +1,16 @@
-
+streamlit
+pandas
+numpy
+plotly
+scikit-learn
+matplotlib
+seaborn
+xlsxwriter
+python-docx
+kaleido
+gspread 
+oauth2client
+scikit-posthocs
+statsmodels
+google-genai
+kmodes
