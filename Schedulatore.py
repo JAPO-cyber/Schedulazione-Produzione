@@ -27,15 +27,15 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.role = role
             # Naviga direttamente alla pagina di caricamento dati
-            st.switch_page("1_Caricamento_Dati")
+            st.switch_page("pages/1_Caricamento_Dati.py")
 
 # 🔓 Logout + Ruolo nella sidebar
-if st.session_state.logged_in:
+else:
     with st.sidebar:
         st.markdown(f"👤 **Ruolo attuale:** `{st.session_state.role}`")
         if st.button("🔓 Logout"):
             st.session_state.logged_in = False
             st.session_state.role = None
-            # Ricarica la pagina per ripristinare lo stato di login
-            st.rerun()
+            # Torna alla schermata di Login
+            st.switch_page("Schedulatore.py")  # oppure semplicemente st.rerun() se vuoi restare qui
 
