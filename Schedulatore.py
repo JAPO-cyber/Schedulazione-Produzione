@@ -2,16 +2,19 @@ import streamlit as st
 from utils.auth import check_login
 from lib.style import apply_custom_style
 
-st.set_page_config(page_title="Schedulatore di produzione", layout="wide")
-
-# ✅ Applica stile grafico centralizzato
-apply_custom_style()
-
 # 📌 Stato sessione
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "role" not in st.session_state:
     st.session_state.role = None
+
+# Determinazione del titolo della pagina (alias)
+page_title = "Login" if not st.session_state.logged_in else "Schedulatore di produzione"
+
+st.set_page_config(page_title=page_title, layout="wide")
+
+# ✅ Applica stile grafico centralizzato
+apply_custom_style()
 
 # 🔐 Login
 if not st.session_state.logged_in:
@@ -24,6 +27,7 @@ if not st.session_state.logged_in:
         if success:
             st.session_state.logged_in = True
             st.session_state.role = role
+            st.experimental_rerun()
 
 # 🔓 Logout + Ruolo nella sidebar
 if st.session_state.logged_in:
@@ -32,4 +36,4 @@ if st.session_state.logged_in:
         if st.button("🔓 Logout"):
             st.session_state.logged_in = False
             st.session_state.role = None
-            st.rerun()
+            st.experimental_rerun()
