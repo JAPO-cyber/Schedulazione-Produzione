@@ -1,4 +1,7 @@
-import streamlit as st
+# Ricostruzione del codice completo per 1_Caricamento_Dati.py
+# Include tutti i file Excel: lotti, fasi, posticipi, equivalenze, posticipi fisiologici
+
+page1_code_complete = '''import streamlit as st
 import pandas as pd
 from lib.style import apply_custom_style
 
@@ -13,79 +16,103 @@ if not st.session_state.get("logged_in", False):
 st.title("1. Caricamento Dati")
 
 # Tabs per caricamento
-tabs = st.tabs(["Fasi per Prodotto", "Lotti Giornalieri", "Caricamento Completo"])
+tabs = st.tabs([
+    "Fasi per Prodotto", 
+    "Lotti Giornalieri", 
+    "Posticipi Autorizzati", 
+    "Posticipi Fisiologici", 
+    "Equivalenze", 
+    "Caricamento Completo"
+])
 
 # Schema atteso
 schema = {
     "fasi": [
-        ("Fase", "Nome della fase (es. 'SPERLATURA')"),
-        ("Macchina", "Nome macchina usata nella fase"),
-        ("Prodotto", "Codice del prodotto"),
+        ("Fase", "Nome fase (es. 'SPERLATURA')"),
+        ("Macchina", "Nome macchina"),
+        ("Prodotto", "Codice prodotto"),
         ("Tempo", "Durata della fase in minuti"),
-        ("Addetti", "Numero operatori richiesti"),
-        ("Pezzi", "Numero di pezzi per ciclo"),
-        ("EnergiaFase", "Consumo stimato per fase"),
-        ("Variabilità", "Fattore di variabilità (int)")
+        ("Addetti", "Numero operatori"),
+        ("Pezzi", "Numero pezzi per ciclo"),
+        ("EnergiaFase", "Consumo energia fase"),
+        ("Variabilità", "Fattore di variabilità")
     ],
     "lotti": [
-        ("Giorno", "Data del giorno di produzione (yyyy-mm-dd)"),
-        ("Lotto", "Codice identificativo lotto"),
-        ("Prodotto", "Codice del prodotto"),
+        ("Giorno", "Data produzione (yyyy-mm-dd)"),
+        ("Lotto", "ID lotto"),
+        ("Prodotto", "Codice prodotto"),
         ("Formato", "Formato confezione"),
         ("Quantità", "Quantità da produrre")
+    ],
+    "posticipi": [
+        ("Fase", "Nome fase"),
+        ("Ritardo_Minuti", "Ritardo autorizzato in minuti")
+    ],
+    "posticipi_fisiologici": [
+        ("Fase", "Nome fase"),
+        ("Ritardo_Fisiologico_Min", "Ritardo fisiologico stimato in minuti")
+    ],
+    "equivalenze": [
+        ("Formato", "Formato del prodotto"),
+        ("Fase", "Nome fase"),
+        ("Equivalenza_Unita", "Fattore di equivalenza")
     ]
 }
 
-# Tab 1: Fasi per prodotto
-with tabs[0]:
-    st.subheader("Carica Fasi per Prodotto")
-    st.markdown("**Struttura attesa:**")
-    for col, desc in schema["fasi"]:
-        st.markdown(f"- **{col}**: {desc}")
-    file_fasi = st.file_uploader("Carica file fasi", type=["xlsx"], key="file_fasi")
-    if file_fasi:
-        df_fasi = pd.read_excel(file_fasi)
-        st.session_state["df_fasi"] = st.data_editor(df_fasi, use_container_width=True, key="editor_fasi")
+data_keys = [
+    "fasi", 
+    "lotti", 
+    "posticipi", 
+    "posticipi_fisiologici", 
+    "equivalenze"
+]
 
-# Tab 2: Lotti giornalieri
-with tabs[1]:
-    st.subheader("Carica Lotti Giornalieri")
-    st.markdown("**Struttura attesa:**")
-    for col, desc in schema["lotti"]:
-        st.markdown(f"- **{col}**: {desc}")
-    file_lotti = st.file_uploader("Carica file lotti", type=["xlsx"], key="file_lotti")
-    if file_lotti:
-        df_lotti = pd.read_excel(file_lotti)
-        st.session_state["df_lotti"] = st.data_editor(df_lotti, use_container_width=True, key="editor_lotti")
+# Tab individuali
+for tab, key in zip(tabs[:-1], data_keys):
+    with tab:
+        st.subheader(f"Carica file {key.replace('_', ' ').title()}")
+        st.markdown("**Struttura attesa:**")
+        for col, desc in schema[key]:
+            st.markdown(f"- **{col}**: {desc}")
+        file = st.file_uploader(f"Carica {key}", type=["xlsx"], key=f"file_{key}")
+        if file:
+            df = pd.read_excel(file)
+            st.session_state[f"df_{key}"] = st.data_editor(df, use_container_width=True, key=f"editor_{key}")
 
-# Tab 3: Caricamento completo
-with tabs[2]:
-    st.subheader("Caricamento Completo (Fasi + Lotti)")
-    st.markdown("Assicurati che i nomi dei file contengano le parole chiave `fasi` e `lotti`.")
-    files = st.file_uploader("Carica i file Excel", type=["xlsx"], accept_multiple_files=True, key="file_all")
+# Tab caricamento completo
+with tabs[-1]:
+    st.subheader("Caricamento Completo di tutti i file")
+    st.markdown("Carica tutti i file Excel insieme. I nomi devono contenere: "
+                "`fasi`, `lotti`, `posticipi`, `fisiologici`, `equivalenze`.")
+    files = st.file_uploader("Carica file multipli", type=["xlsx"], accept_multiple_files=True, key="file_all")
     if files:
         for f in files:
             name = f.name.lower()
-            if "fasi" in name:
-                df = pd.read_excel(f)
-                st.session_state["df_fasi"] = df
-                st.write("📄 Fasi per Prodotto:")
-                st.write(df.head())
-            elif "lotti" in name:
-                df = pd.read_excel(f)
-                st.session_state["df_lotti"] = df
-                st.write("📄 Lotti Giornalieri:")
-                st.write(df.head())
+            for key in data_keys:
+                if key in name:
+                    df = pd.read_excel(f)
+                    st.session_state[f"df_{key}"] = df
+                    st.write(f"📄 {key.replace('_', ' ').title()}:")
+                    st.write(df.head())
         if st.button("✅ Conferma caricamento completo"):
             st.session_state["dati_confermati"] = True
             st.success("✅ Dati confermati correttamente!")
 
-# Conferma dati se caricati
-if "df_fasi" in st.session_state and "df_lotti" in st.session_state:
+# Conferma manuale
+if all(st.session_state.get(f"df_{k}") is not None for k in data_keys):
     if st.button("✅ Conferma dati caricati"):
         st.session_state["dati_confermati"] = True
-        st.success("✅ Dati confermati correttamente! Procedi alla configurazione.")
+        st.success("✅ Tutti i dati caricati e confermati!")
 else:
-    st.info("Carica i dati richiesti per abilitare la conferma.")
+    st.info("Carica tutti i file richiesti per abilitare la conferma.")
+'''
+
+# Scrive il codice aggiornato sul file corretto
+file_path = Path("/mnt/data/schedulazione_app/pages/1_Caricamento_Dati.py")
+file_path.write_text(page1_code_complete, encoding="utf-8")
+
+# Mostra all'utente il contenuto aggiornato
+page1_code_complete
+
 
 
