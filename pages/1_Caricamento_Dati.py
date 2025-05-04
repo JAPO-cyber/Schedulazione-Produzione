@@ -12,56 +12,29 @@ if not st.session_state.get("logged_in", False):
 
 st.title("1. Caricamento Dati")
 
-tabs = st.tabs(["Carica Excel", "Modifica Dati"])
+# Definizione delle tab per ogni caricamento
+tabs = st.tabs(["Lotti", "Tempi", "Posticipi", "Equivalenze", "Post. Fisiologici"])
+data_keys = ["lotti", "tempi", "posticipi", "equivalenze", "posticipi_fisiologici"]
+for tab, key in zip(tabs, data_keys):
+    with tab:
+        st.subheader(f"Carica file {key.replace('_', ' ').title()}")
+        file = st.file_uploader(f"Carica {key}", type=["xlsx"], key=f"file_{key}")
+        if file:
+            df = pd.read_excel(file)
+            st.session_state[f"df_{key}"] = df
+            st.markdown(f"**Anteprima {key.replace('_', ' ').title()}**")
+            edited = st.data_editor(df, use_container_width=True, key=f"editor_{key}")
+            st.session_state[f"df_{key}"] = edited
 
-with tabs[0]:
-    st.subheader("Carica i file Excel")
-    file_lotti = st.file_uploader("Carica file lotti", type=["xlsx"], key="file_lotti")
-    file_tempi = st.file_uploader("Carica file tempi", type=["xlsx"], key="file_tempi")
-    file_posticipi = st.file_uploader("Carica file posticipi", type=["xlsx"], key="file_posticipi")
-    file_equivalenze = st.file_uploader("Carica file equivalenze", type=["xlsx"], key="file_equivalenze")
-    file_posticipi_fisiologici = st.file_uploader("Carica file posticipi fisiologici", type=["xlsx"], key="file_posticipi_fisiologici")
+# Controllo se tutti i dati sono caricati
+all_loaded = all(st.session_state.get(f"df_{key}") is not None for key in data_keys)
 
-    if st.button("Carica Dati", key="load_data"):
-        if not all([file_lotti, file_tempi, file_posticipi, file_equivalenze, file_posticipi_fisiologici]):
-            st.error("Per favore carica tutti i file richiesti.")
-        else:
-            df_lotti = pd.read_excel(file_lotti)
-            df_tempi = pd.read_excel(file_tempi)
-            df_posticipi = pd.read_excel(file_posticipi)
-            df_equivalenze = pd.read_excel(file_equivalenze)
-            df_posticipi_fisiologici = pd.read_excel(file_posticipi_fisiologici)
+# Sezione conferma
+st.markdown("---")
+if all_loaded:
+    if st.button("✅ Conferma dati caricati"):
+        st.success("Dati confermati correttamente!")
+        st.session_state["dati_confermati"] = True
+else:
+    st.info("Carica e modifica tutti i file prima di confermare.")
 
-            st.session_state["df_lotti"] = df_lotti
-            st.session_state["df_tempi"] = df_tempi
-            st.session_state["df_posticipi"] = df_posticipi
-            st.session_state["df_equivalenze"] = df_equivalenze
-            st.session_state["df_posticipi_fisiologici"] = df_posticipi_fisiologici
-
-            st.success("Dati caricati correttamente!")
-
-with tabs[1]:
-    st.subheader("Modifica Dati")
-    if st.session_state.get("df_lotti") is not None:
-        st.markdown("**Lotti**")
-        st.session_state["df_lotti"] = st.data_editor(
-            st.session_state["df_lotti"], use_container_width=True
-        )
-        st.markdown("**Tempi**")
-        st.session_state["df_tempi"] = st.data_editor(
-            st.session_state["df_tempi"], use_container_width=True
-        )
-        st.markdown("**Posticipi**")
-        st.session_state["df_posticipi"] = st.data_editor(
-            st.session_state["df_posticipi"], use_container_width=True
-        )
-        st.markdown("**Equivalenze**")
-        st.session_state["df_equivalenze"] = st.data_editor(
-            st.session_state["df_equivalenze"], use_container_width=True
-        )
-        st.markdown("**Posticipi Fisiologici**")
-        st.session_state["df_posticipi_fisiologici"] = st.data_editor(
-            st.session_state["df_posticipi_fisiologici"], use_container_width=True
-        )
-    else:
-        st.info("Carica prima i dati nella scheda 'Carica Excel' per poterli modificare.")
