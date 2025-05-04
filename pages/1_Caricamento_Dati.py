@@ -13,7 +13,7 @@ if not st.session_state.get("logged_in", False):
 st.title("1. Caricamento Dati")
 
 # Tabs per caricamento
-tabs = st.tabs(["Fasi per Prodotto", "Lotti Giornalieri", "Caricamento Completo", "Scarica Modelli Excel"])
+tabs = st.tabs(["Fasi per Prodotto", "Lotti Giornalieri", "Caricamento Completo"])
 
 # Schema atteso
 schema = {
@@ -80,21 +80,6 @@ with tabs[2]:
             st.session_state["dati_confermati"] = True
             st.success("✅ Dati confermati correttamente!")
 
-# Tab 4: Download modelli Excel
-with tabs[3]:
-    st.subheader("📥 Scarica Modelli Excel")
-    st.markdown("Scarica i template con la struttura richiesta da compilare.")
-    st.download_button(
-        "⬇️ Scarica Fasi per Prodotto",
-        data=open("/mnt/data/excel_modelli_simulazione/fasi_per_prodotto.xlsx", "rb").read(),
-        file_name="fasi_per_prodotto.xlsx"
-    )
-    st.download_button(
-        "⬇️ Scarica Lotti Giornalieri",
-        data=open("/mnt/data/excel_modelli_simulazione/lotti_giornalieri.xlsx", "rb").read(),
-        file_name="lotti_giornalieri.xlsx"
-    )
-
 # Conferma dati se caricati
 if "df_fasi" in st.session_state and "df_lotti" in st.session_state:
     if st.button("✅ Conferma dati caricati"):
@@ -102,4 +87,5 @@ if "df_fasi" in st.session_state and "df_lotti" in st.session_state:
         st.success("✅ Dati confermati correttamente! Procedi alla configurazione.")
 else:
     st.info("Carica i dati richiesti per abilitare la conferma.")
+
 
