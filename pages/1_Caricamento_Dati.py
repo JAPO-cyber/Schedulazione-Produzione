@@ -34,10 +34,11 @@ st.markdown("---")
 if all_loaded:
     if st.button("✅ Conferma dati caricati"):
         st.session_state["dati_confermati"] = True
-        st.success("Dati confermati correttamente! Reindirizzo alla pagina successiva...")
-        # Navigazione automatica alla pagina 2 (Streamlit >=1.24)
-        st.experimental_set_page("2_Configurazione_Simulazione")
-        st.experimental_rerun()
+        st.success("Dati confermati correttamente!")
+        st.markdown(
+            "📄 **Prossimo passo:** vai alla pagina **2. Configurazione Simulazione** "
+            "dal menu a sinistra 👉"
+        )
 else:
     st.info("Carica e modifica tutti i file prima di confermare.")
 
