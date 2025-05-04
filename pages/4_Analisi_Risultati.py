@@ -22,8 +22,8 @@ st.title("4. Analisi dei Risultati")
 df_risultati = st.session_state["risultati_lotti"]
 df_risorse = st.session_state["risultati_risorse"]
 
-# Tabs per analisi
-tabs = st.tabs(["Gantt Lotti", "Uso Risorse"])
+# Tabs per analisi principali
+tabs = st.tabs(["Gantt Lotti", "Dashboard Risorse"])
 
 with tabs[0]:
     st.subheader("Diagramma di Gantt dei Lotti")
@@ -37,28 +37,47 @@ with tabs[0]:
     )
     gantt.update_yaxes(autorange="reversed")
     st.plotly_chart(gantt, use_container_width=True)
+    st.markdown("---")
+    st.download_button(
+        "⬇️ Scarica Gantt come CSV",
+        df_risultati.to_csv(index=False).encode("utf-8"),
+        "gantt_lotti.csv",
+        "text/csv"
+    )
 
 with tabs[1]:
     st.subheader("Utilizzo Risorse nel Tempo")
-    risorse = px.line(
+    # Line chart per occupazione
+    line_fig = px.line(
         df_risorse,
         x="Time",
         y=["Persone_occupate", "Carrelli_occupati"],
         title="Occupazione Risorse"
     )
-    st.plotly_chart(risorse, use_container_width=True)
+    st.plotly_chart(line_fig, use_container_width=True)
 
-# Opzioni download
-st.markdown("---")
-st.download_button(
-    "⬇️ Scarica Gantt come CSV",
-    df_risultati.to_csv(index=False).encode("utf-8"),
-    "gantt_lotti.csv",
-    "text/csv"
-)
-st.download_button(
-    "⬇️ Scarica Uso Risorse come CSV",
-    df_risorse.to_csv(index=False).encode("utf-8"),
-    "uso_risorse.csv",
-    "text/csv"
-)
+    st.subheader("Andamento Persone")
+    area_pers = px.area(
+        df_risorse,
+        x="Time",
+        y="Persone_occupate",
+        title="Operai Occupati nel Tempo"
+    )
+    st.plotly_chart(area_pers, use_container_width=True)
+
+    st.subheader("Andamento Carrelli")
+    area_car = px.area(
+        df_risorse,
+        x="Time",
+        y="Carrelli_occupati",
+        title="Carrelli Occupati nel Tempo"
+    )
+    st.plotly_chart(area_car, use_container_width=True)
+
+    st.markdown("---")
+    st.download_button(
+        "⬇️ Scarica Uso Risorse come CSV",
+        df_risorse.to_csv(index=False).encode("utf-8"),
+        "uso_risorse.csv",
+        "text/csv"
+    )
