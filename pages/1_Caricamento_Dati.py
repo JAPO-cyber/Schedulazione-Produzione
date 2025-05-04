@@ -1,7 +1,4 @@
-# Ricostruzione del codice completo per 1_Caricamento_Dati.py
-# Include tutti i file Excel: lotti, fasi, posticipi, equivalenze, posticipi fisiologici
-
-page1_code_complete = '''import streamlit as st
+import streamlit as st
 import pandas as pd
 from lib.style import apply_custom_style
 
@@ -59,13 +56,7 @@ schema = {
     ]
 }
 
-data_keys = [
-    "fasi", 
-    "lotti", 
-    "posticipi", 
-    "posticipi_fisiologici", 
-    "equivalenze"
-]
+data_keys = ["fasi", "lotti", "posticipi", "posticipi_fisiologici", "equivalenze"]
 
 # Tab individuali
 for tab, key in zip(tabs[:-1], data_keys):
@@ -105,14 +96,5 @@ if all(st.session_state.get(f"df_{k}") is not None for k in data_keys):
         st.success("✅ Tutti i dati caricati e confermati!")
 else:
     st.info("Carica tutti i file richiesti per abilitare la conferma.")
-'''
-
-# Scrive il codice aggiornato sul file corretto
-file_path = Path("/mnt/data/schedulazione_app/pages/1_Caricamento_Dati.py")
-file_path.write_text(page1_code_complete, encoding="utf-8")
-
-# Mostra all'utente il contenuto aggiornato
-page1_code_complete
-
 
 
