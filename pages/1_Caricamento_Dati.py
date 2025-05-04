@@ -103,4 +103,3 @@ if "df_fasi" in st.session_state and "df_lotti" in st.session_state:
 else:
     st.info("Carica i dati richiesti per abilitare la conferma.")
 
-
