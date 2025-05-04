@@ -22,11 +22,12 @@ st.title("4. Analisi e Visualizzazione Risultati")
 
 # 1) Gantt Chart per lotto/fase
 st.subheader("Timeline delle Fasi per Lotto")
-# Prepara dati: converte Start/End in datetime relativi
+# Converti offset minuti in datetime assoluti
+start_time = df_pers["timestamp"].min()
 df_gantt = df_ris.copy()
-# partendo da timestamp 0 = data_inizio, se serve
-df_gantt["Start_dt"] = pd.to_timedelta(df_gantt["Start"], unit="m")
-df_gantt["End_dt"] = pd.to_timedelta(df_gantt["End"], unit="m")
+df_gantt["Start_dt"] = start_time + pd.to_timedelta(df_gantt["Start"], unit="m")
+df_gantt["End_dt"]   = start_time + pd.to_timedelta(df_gantt["End"],   unit="m")
+
 fig_gantt = px.timeline(
     df_gantt,
     x_start="Start_dt",
