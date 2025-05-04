@@ -1,79 +1,43 @@
 import streamlit as st
 import pandas as pd
 from lib.style import apply_custom_style
-
-# Importa la funzione di simulazione dal modulo simulator
 from lib.simulator import esegui_simulazione
 
 st.set_page_config(page_title="3. Esecuzione Simulazione", layout="wide")
 apply_custom_style()
 
-# ✅ Verifica accesso
-if not st.session_state.get("logged_in", False):
-    st.error("❌ Devi effettuare il login per accedere a questa pagina.")
+if not st.session_state.get("logged_in"):
+    st.error("❌ Login richiesto"); st.stop()
+
+# Verifica file e scenari
+req = ["df_lotti","df_fasi","df_posticipi","df_posticipi_fisiologici","df_equivalenze","scenari"]
+if any(k not in st.session_state for k in req):
+    st.warning("⚠️ Completa Pagine 1 e 2 prima di procedere.")
     st.stop()
 
-# ✅ Verifica che i dati e la configurazione siano presenti
-required_keys = [
-    "df_lotti", "df_fasi", "df_posticipi", 
-    "df_posticipi_fisiologici", "df_equivalenze", 
-    "config_simulazione"
-]
-missing = [k for k in required_keys if k not in st.session_state]
-if missing:
-    st.warning(f"⚠️ Mancano: {', '.join(missing)}. Completa caricamenti e configurazione.")
-    st.stop()
+st.title("3. Esecuzione di Tutti gli Scenari")
 
-st.title("3. Esecuzione della Simulazione")
-
-# Mostra riepilogo dati
-with st.expander("📋 Riepilogo Dati Caricati", expanded=False):
-    st.dataframe(st.session_state["df_lotti"].head(), use_container_width=True)
-    st.dataframe(st.session_state["df_fasi"].head(), use_container_width=True)
-    st.dataframe(st.session_state["df_posticipi"].head(), use_container_width=True)
-    st.dataframe(st.session_state["df_posticipi_fisiologici"].head(), use_container_width=True)
-    st.dataframe(st.session_state["df_equivalenze"].head(), use_container_width=True)
-
-# Parametri configurazione
-config = st.session_state["config_simulazione"]
-with st.expander("⚙️ Parametri di Simulazione", expanded=False):
-    st.json(config, expanded=False)
-
-# Bottone per eseguire
-if st.button("🚀 Avvia Simulazione"):
-    with st.spinner("Simulazione in corso..."):
-        # Estrai DataFrame e config
-        df_lotti = st.session_state["df_lotti"]
-        df_tempi = st.session_state["df_fasi"]
-        df_posticipi = st.session_state["df_posticipi"]
-        df_equiv = st.session_state["df_equivalenze"]
-        df_post_fisio = st.session_state["df_posticipi_fisiologici"]
-        config = st.session_state["config_simulazione"]
-
-        # Chiamata alla funzione centralizzata
-        df_risultati, df_persone, df_energia, df_carrelli = esegui_simulazione(
-            df_lotti, df_tempi, df_posticipi, df_equiv, df_post_fisio,
-            config
+if st.button("🚀 Avvia tutti gli scenari"):
+    results = {}
+    for idx, cfg in enumerate(st.session_state["scenari"], start=1):
+        df_ris, df_pers, df_eng, df_car = esegui_simulazione(
+            st.session_state["df_lotti"],
+            st.session_state["df_fasi"],
+            st.session_state["df_posticipi"],
+            st.session_state["df_equivalenze"],
+            st.session_state["df_posticipi_fisiologici"],
+            cfg
         )
-        # Salva risultati in session state
-        st.session_state["risultato_simulazione"] = {
-            "df_risultati": df_risultati,
-            "df_persone": df_persone,
-            "df_energia": df_energia,
-            "df_carrelli": df_carrelli
+        results[f"Scenario {idx}"] = {
+            "df_risultati": df_ris,
+            "df_persone": df_pers,
+            "df_energia": df_eng,
+            "df_carrelli": df_car
         }
-    st.success("✅ Simulazione completata!")
+    st.session_state["risultati_scenari"] = results
+    st.success("✅ Tutti gli scenari sono stati simulati!")
 
-    # Visualizza primi risultati
-    with st.expander("📊 Risultati Simulazione", expanded=True):
-        st.markdown("**Output produzione**")
-        st.dataframe(df_risultati.head(), use_container_width=True)
-        st.markdown("**Andamento persone**")
-        st.line_chart(df_persone.set_index('timestamp'))
-        st.markdown("**Andamento energia**")
-        st.line_chart(df_energia.set_index('timestamp'))
-        st.markdown("**Carrelli occupati**")
-        st.line_chart(df_carrelli.set_index('timestamp'))
+# Se già simulato, avvisa
+elif "risultati_scenari" in st.session_state:
+    st.info("ℹ️ Risultati scenari già disponibili. Vai alla Pagina 4.")
 
-elif "risultato_simulazione" in st.session_state:
-    st.info("🛈 Risultati già disponibili. Espandi l'area Risultati Simulazione.")
