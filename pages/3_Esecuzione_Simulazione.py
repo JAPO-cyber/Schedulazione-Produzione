@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from lib.style import apply_custom_style
-from lib.simulator_rev01 import esegui_simulazione
+from lib.simulator import esegui_simulazione
 
 st.set_page_config(page_title="3. Esecuzione Simulazione", layout="wide")
 apply_custom_style()
